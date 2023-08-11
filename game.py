@@ -7,9 +7,10 @@ class Game:
     def __init__(self):
         pg.init()
         self.DIMENSIONS = [500,500]
+        self.paused = False
         self.screen = pg.display.set_mode(self.DIMENSIONS)
         self.Snake = Snake(self.DIMENSIONS, self)
-        self.FPS = 10
+        self.FPS = 7
         self.SCALE = self.Snake.size*2
         
         self.BX_WIDTH = self.DIMENSIONS[0]
@@ -30,7 +31,12 @@ class Game:
 
     def endGame(self):
         self.Snake = Snake(self.DIMENSIONS, self)
+        self.FPS = 7
         #time.sleep(0.5)
+    
+    def speedUp(self):
+        if (self.Snake.length-1) % 2 == 0 and 2 <= self.Snake.length:
+            self.FPS += 1
 
     def checkCollisions(self):
         for ob in self.collision_objects:
@@ -40,6 +46,7 @@ class Game:
         if self.Snake.snake.colliderect(self.food[0]):
             self.Snake.eat()
             self.food.clear()
+            self.speedUp()
         #check if snake collided with self
         for seg in self.Snake.body[2:]:
             if self.Snake.snake.colliderect(seg.object):
@@ -107,6 +114,8 @@ class Game:
                     self.x_keys_pressed[0] = True
                 if event.key == pg.K_RIGHT:
                     self.x_keys_pressed[1] = True
+                if event.key == pg.K_SPACE:
+                    self.paused = not self.paused
             if event.type == pg.KEYUP:
                 # y axis
                 if event.key == pg.K_UP:
@@ -124,20 +133,20 @@ class Game:
         while running:
             #check input
             self.processInput()
+            if not self.paused:
+                self.screen.fill('black')
+                self.spawnFood()
+                self.renderFood()
+                self.Snake.move()
+                self.checkCollisions()
+                self.Snake.getDirection(self.y_keys_pressed, self.x_keys_pressed)
 
-            self.screen.fill('black')
-            self.spawnFood()
-            self.renderFood()
-            self.Snake.move()
-            self.checkCollisions()
-            self.Snake.getDirection(self.y_keys_pressed, self.x_keys_pressed)
-
-            #Render here
-            
-            self.renderBorder()
-            self.renderFPStext()
-            
-            self.Snake.render()
+                #Render here
+                
+                self.renderBorder()
+                self.renderFPStext()
+                
+                self.Snake.render()
             
             
             pg.display.flip()
